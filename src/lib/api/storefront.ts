@@ -11,6 +11,7 @@ export interface StorefrontInfo {
   status_message: string;
   min_order_amount: string;
   hero_banner_image: string | null;
+  mobile_hero_banner_image: string | null;
   promo_sidebar_image: string | null;
 }
 

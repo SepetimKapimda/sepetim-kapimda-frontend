@@ -56,8 +56,12 @@ export default function AdminAyarlarPage() {
   const [bannerForm, setBannerForm] = useState(emptyBannerForm);
   const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [bannerImagePreview, setBannerImagePreview] = useState<string | null>(null);
+  // null = değiştirilmedi, "" = mevcut mobil görsel kaldırılmak üzere işaretlendi, File = yeni yükleme.
+  const [bannerMobileImageFile, setBannerMobileImageFile] = useState<File | "" | null>(null);
+  const [bannerMobileImagePreview, setBannerMobileImagePreview] = useState<string | null>(null);
   const [isSavingBanner, setIsSavingBanner] = useState(false);
   const bannerImageInputRef = useRef<HTMLInputElement>(null);
+  const bannerMobileImageInputRef = useRef<HTMLInputElement>(null);
 
   // --- Marka Yönetimi (Logo & Favicon) ---
   const logoUrl = useBrandingStore((state) => state.logoUrl);
@@ -132,6 +136,8 @@ export default function AdminAyarlarPage() {
     setBannerForm(emptyBannerForm);
     setBannerImageFile(null);
     setBannerImagePreview(null);
+    setBannerMobileImageFile(null);
+    setBannerMobileImagePreview(null);
     setIsBannerModalOpen(true);
   };
 
@@ -146,6 +152,8 @@ export default function AdminAyarlarPage() {
     });
     setBannerImageFile(null);
     setBannerImagePreview(banner.image);
+    setBannerMobileImageFile(null);
+    setBannerMobileImagePreview(banner.mobile_image);
     setIsBannerModalOpen(true);
   };
 
@@ -214,6 +222,20 @@ export default function AdminAyarlarPage() {
     }
   };
 
+  const handleBannerMobileImagePick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBannerMobileImageFile(file);
+      setBannerMobileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleRemoveBannerMobileImage = () => {
+    setBannerMobileImageFile("");
+    setBannerMobileImagePreview(null);
+    if (bannerMobileImageInputRef.current) bannerMobileImageInputRef.current.value = "";
+  };
+
   const handleSubmitBanner = async (e: FormEvent) => {
     e.preventDefault();
     if (!editingBanner && !bannerImageFile) {
@@ -229,6 +251,7 @@ export default function AdminAyarlarPage() {
         link: bannerForm.link || null,
         order: bannerForm.order,
         ...(bannerImageFile ? { image: bannerImageFile } : {}),
+        ...(bannerMobileImageFile !== null ? { mobile_image: bannerMobileImageFile } : {}),
       };
       if (editingBanner) {
         await updateBanner(editingBanner.id, payload);
@@ -616,6 +639,51 @@ export default function AdminAyarlarPage() {
                     </>
                   )}
                 </button>
+              </div>
+
+              <div>
+                <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <span className="block text-sm font-bold text-charcoal">Mobil Afiş (Opsiyonel)</span>
+                  {bannerMobileImagePreview && (
+                    <button
+                      type="button"
+                      onClick={handleRemoveBannerMobileImage}
+                      className="flex items-center gap-1 text-xs font-bold text-red-500 transition hover:text-red-600"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Kaldır
+                    </button>
+                  )}
+                </div>
+                <input
+                  ref={bannerMobileImageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleBannerMobileImagePick}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => bannerMobileImageInputRef.current?.click()}
+                  className="flex aspect-[9/16] w-full max-w-[160px] flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-muted transition hover:border-orange-500 hover:text-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40"
+                >
+                  {bannerMobileImagePreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={bannerMobileImagePreview}
+                      alt="Mobil afiş önizleme"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <Upload className="h-5 w-5" />
+                      <span className="text-xs font-bold">Mobil Görsel Yükle</span>
+                    </>
+                  )}
+                </button>
+                <p className="mt-1.5 text-xs text-muted">
+                  Boş bırakılırsa mobilde de masaüstü görseli kullanılır.
+                </p>
               </div>
 
               <div>

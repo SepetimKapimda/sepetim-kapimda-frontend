@@ -7,6 +7,7 @@ export interface ActiveBanner {
   title: string | null;
   subtitle: string | null;
   image: string;
+  mobile_image: string | null;
   button_text: string | null;
   link: string | null;
   order: number;

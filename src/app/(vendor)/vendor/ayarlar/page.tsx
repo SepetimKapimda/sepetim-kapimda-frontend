@@ -49,6 +49,10 @@ function VendorAyarlarContent() {
   const [promoBannerPreview, setPromoBannerPreview] = useState<string | null>(null);
   const heroBannerInputRef = useRef<HTMLInputElement>(null);
   const promoBannerInputRef = useRef<HTMLInputElement>(null);
+  // null = değiştirilmedi, "" = mevcut mobil banner kaldırılmak üzere işaretlendi, File = yeni yükleme.
+  const [mobileHeroBannerFile, setMobileHeroBannerFile] = useState<File | "" | null>(null);
+  const [mobileHeroBannerPreview, setMobileHeroBannerPreview] = useState<string | null>(null);
+  const mobileHeroBannerInputRef = useRef<HTMLInputElement>(null);
 
   const openingTime = useMarketStore((state) => state.openingTime);
   const closingTime = useMarketStore((state) => state.closingTime);
@@ -80,6 +84,7 @@ function VendorAyarlarContent() {
       setIsTemporarilyClosed(marketSettingsData.is_temporarily_closed);
       setHeroBannerPreview(marketSettingsData.hero_banner_image);
       setPromoBannerPreview(marketSettingsData.promo_sidebar_image);
+      setMobileHeroBannerPreview(marketSettingsData.mobile_hero_banner_image);
       didInitMarketSettings.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -154,6 +159,19 @@ function VendorAyarlarContent() {
     setPromoBannerPreview(URL.createObjectURL(file));
   };
 
+  const handleMobileHeroBannerPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMobileHeroBannerFile(file);
+    setMobileHeroBannerPreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveMobileHeroBanner = () => {
+    setMobileHeroBannerFile("");
+    setMobileHeroBannerPreview(null);
+    if (mobileHeroBannerInputRef.current) mobileHeroBannerInputRef.current.value = "";
+  };
+
   const handleSaveMarket = async (e: FormEvent) => {
     e.preventDefault();
     setIsSavingMarket(true);
@@ -164,6 +182,7 @@ function VendorAyarlarContent() {
         min_order_amount: minOrderAmount,
         is_temporarily_closed: isTemporarilyClosed,
         ...(heroBannerFile ? { hero_banner_image: heroBannerFile } : {}),
+        ...(mobileHeroBannerFile !== null ? { mobile_hero_banner_image: mobileHeroBannerFile } : {}),
         ...(promoBannerFile ? { promo_sidebar_image: promoBannerFile } : {}),
       });
       await fetchMarketHours();
@@ -364,6 +383,52 @@ function VendorAyarlarContent() {
                     <Upload className="h-6 w-6" />
                     <span className="text-xs font-bold">Banner Yükle</span>
                     <span className="text-[11px] text-gray-400">Önerilen: 300x375 px</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="sm:col-span-3">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <span className="block text-sm font-bold text-charcoal">
+                  Mobil Kampanya Banner&apos;ı (Opsiyonel)
+                </span>
+                {mobileHeroBannerPreview && (
+                  <button
+                    type="button"
+                    onClick={handleRemoveMobileHeroBanner}
+                    className="text-xs font-bold text-red-500 transition hover:text-red-600"
+                  >
+                    Kaldır
+                  </button>
+                )}
+              </div>
+              <input
+                ref={mobileHeroBannerInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleMobileHeroBannerPick}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => mobileHeroBannerInputRef.current?.click()}
+                className="flex aspect-[16/9] w-full flex-col items-center justify-center gap-1.5 overflow-hidden rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-muted transition hover:border-orange-500 hover:text-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40"
+              >
+                {mobileHeroBannerPreview ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={mobileHeroBannerPreview}
+                    alt="Mobil kampanya banner önizleme"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <>
+                    <Upload className="h-6 w-6" />
+                    <span className="text-xs font-bold">Mobil Banner Yükle</span>
+                    <span className="text-[11px] text-gray-400">
+                      Boş bırakılırsa mobilde de ana banner kullanılır
+                    </span>
                   </>
                 )}
               </button>

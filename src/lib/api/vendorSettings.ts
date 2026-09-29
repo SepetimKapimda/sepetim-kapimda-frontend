@@ -9,6 +9,7 @@ export interface MarketSettings {
   is_temporarily_closed: boolean;
   min_order_amount: string;
   hero_banner_image: string | null;
+  mobile_hero_banner_image: string | null;
   promo_sidebar_image: string | null;
 }
 
@@ -25,6 +26,7 @@ export interface UpdateMarketSettingsPayload {
   min_order_amount?: string;
   /** Yeni dosya, kaldırmak için "" (boş string), değiştirmemek için hiç gönderme. */
   hero_banner_image?: File | "";
+  mobile_hero_banner_image?: File | "";
   promo_sidebar_image?: File | "";
 }
 
@@ -32,12 +34,15 @@ export function updateMarketSettings(
   payload: UpdateMarketSettingsPayload
 ): Promise<MarketSettings> {
   const hasFile =
-    payload.hero_banner_image instanceof File || payload.promo_sidebar_image instanceof File;
+    payload.hero_banner_image instanceof File ||
+    payload.mobile_hero_banner_image instanceof File ||
+    payload.promo_sidebar_image instanceof File;
 
   if (!hasFile) {
-    const { hero_banner_image, promo_sidebar_image, ...rest } = payload;
+    const { hero_banner_image, mobile_hero_banner_image, promo_sidebar_image, ...rest } = payload;
     const body: Record<string, unknown> = { ...rest };
     if (hero_banner_image === "") body.hero_banner_image = "";
+    if (mobile_hero_banner_image === "") body.mobile_hero_banner_image = "";
     if (promo_sidebar_image === "") body.promo_sidebar_image = "";
     return apiClient.patch<MarketSettings>("/api/markets/settings/", body);
   }

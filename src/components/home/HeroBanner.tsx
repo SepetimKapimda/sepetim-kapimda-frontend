@@ -29,9 +29,19 @@ export default function HeroBanner({ storefront, banners }: HeroBannerProps) {
   // Admin panelinden aktif afiş girilmemişse markanın kendi vitrin görseline düş.
   if (banners.length === 0) {
     const bannerImage = storefront?.hero_banner_image || "https://placehold.co/1200x400.png";
+    const mobileBannerImage = storefront?.mobile_hero_banner_image || bannerImage;
 
     return (
-      <section className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-card sm:rounded-3xl md:aspect-[21/9]">
+      <section className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl shadow-card sm:rounded-3xl md:aspect-[21/9]">
+        <Image
+          src={mobileBannerImage}
+          alt="Sepetim Kapımda kampanya banner'ı"
+          fill
+          priority
+          sizes="100vw"
+          unoptimized={isSupabaseUrl(mobileBannerImage)}
+          className="block object-cover md:hidden"
+        />
         <Image
           src={bannerImage}
           alt="Sepetim Kapımda kampanya banner'ı"
@@ -39,7 +49,7 @@ export default function HeroBanner({ storefront, banners }: HeroBannerProps) {
           priority
           sizes="100vw"
           unoptimized={isSupabaseUrl(bannerImage)}
-          className="object-cover"
+          className="hidden object-cover md:block"
         />
 
         <Link
@@ -54,8 +64,19 @@ export default function HeroBanner({ storefront, banners }: HeroBannerProps) {
   }
 
   const banner = banners[activeIndex];
+  // Mobil için ayrı bir kırpma/kompozisyon yüklenmemişse masaüstü görseline düş.
+  const mobileImage = banner.mobile_image || banner.image;
   const bannerContent = (
     <>
+      <Image
+        src={mobileImage}
+        alt={banner.title ?? "Sepetim Kapımda kampanya banner'ı"}
+        fill
+        priority
+        sizes="100vw"
+        unoptimized={isSupabaseUrl(mobileImage)}
+        className="block object-cover md:hidden"
+      />
       <Image
         src={banner.image}
         alt={banner.title ?? "Sepetim Kapımda kampanya banner'ı"}
@@ -63,7 +84,7 @@ export default function HeroBanner({ storefront, banners }: HeroBannerProps) {
         priority
         sizes="100vw"
         unoptimized={isSupabaseUrl(banner.image)}
-        className="object-cover"
+        className="hidden object-cover md:block"
       />
 
       {(banner.title || banner.subtitle) && (
@@ -85,7 +106,7 @@ export default function HeroBanner({ storefront, banners }: HeroBannerProps) {
   );
 
   return (
-    <section className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-card sm:rounded-3xl md:aspect-[21/9]">
+    <section className="relative aspect-[16/9] w-full overflow-hidden rounded-2xl shadow-card sm:rounded-3xl md:aspect-[21/9]">
       {banner.link ? (
         <Link href={banner.link} className="group absolute inset-0">
           {bannerContent}
