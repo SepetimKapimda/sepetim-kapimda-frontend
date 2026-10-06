@@ -126,6 +126,34 @@ function stripFieldPrefix(message: string): string {
   return message.replace(FIELD_PREFIX_PATTERN, "");
 }
 
+// DRF, basit alan hatalarının (`{"old_password": "..."}`) yanı sıra iç içe
+// serializer'larda (örn. adres formundaki alt nesneler) birkaç seviye derin
+// obje/dizi karışımları da döndürebiliyor: {"address": {"city": ["Zorunlu
+// alan"]}}. Kullanıcıya hangi şekille karşılaşırsak karşılaşalım anlamlı,
+// ham alan adı içermeyen TEK bir Türkçe cümle göstermek için ilk string
+// yaprağı (leaf) derinlemesine arıyoruz.
+function findFirstErrorString(value: unknown): string | null {
+  if (typeof value === "string") return value;
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findFirstErrorString(item);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  if (value && typeof value === "object") {
+    for (const nested of Object.values(value as Record<string, unknown>)) {
+      const found = findFirstErrorString(nested);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  return null;
+}
+
 // Neredeyse tüm uçlar §0'daki {success:false, error:{message,status_code}}
 // zarfını kullanır, ama örn. `/api/users/change-password/` gibi bazı DRF
 // serializer'ları alan bazlı düz hata döner: {"old_password": "Eski şifre yanlış"}.
@@ -133,13 +161,9 @@ function extractErrorMessage(payload: unknown, status: number): string {
   const envelope = payload as Partial<ErrorEnvelope> | null;
   if (envelope?.error?.message) return stripFieldPrefix(envelope.error.message);
 
-  if (payload && typeof payload === "object") {
-    const firstValue = Object.values(payload as Record<string, unknown>)[0];
-    if (typeof firstValue === "string") return stripFieldPrefix(firstValue);
-    if (Array.isArray(firstValue) && typeof firstValue[0] === "string") {
-      return stripFieldPrefix(firstValue[0]);
-    }
-  }
+  const firstError =
+    payload && typeof payload === "object" ? findFirstErrorString(payload) : null;
+  if (firstError) return stripFieldPrefix(firstError);
 
   return `İstek başarısız oldu (HTTP ${status}).`;
 }

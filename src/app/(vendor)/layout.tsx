@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Bell,
   Clock,
   History,
   Loader2,
@@ -19,6 +18,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import { useMarketStore } from "@/store/useMarketStore";
 import Logo from "@/components/Logo";
+import NotificationBell from "@/components/NotificationBell";
 
 const navItems = [
   { href: "/vendor/panel", label: "Canlı Siparişler", icon: Radio, comingSoon: false },
@@ -42,7 +42,6 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
   const pathname = usePathname();
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [hasNewOrderNotification, setHasNewOrderNotification] = useState(true);
 
   useEffect(() => {
     // `AuthBootstrap` oturumu token'dan geri yüklerken (`isBootstrapping`)
@@ -196,24 +195,8 @@ export default function VendorLayout({ children }: { children: React.ReactNode }
               {isTemporarilyClosed ? "KAPALI" : "AÇIK"}
             </span>
 
-            <button
-              type="button"
-              onClick={() => setHasNewOrderNotification(false)}
-              aria-label={
-                hasNewOrderNotification
-                  ? "Bildirimler (yeni sipariş var)"
-                  : "Bildirimler"
-              }
-              className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted transition hover:bg-gray-100 hover:text-charcoal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40 active:scale-95"
-            >
-              <Bell className="h-5 w-5" />
-              {hasNewOrderNotification && (
-                <span className="absolute right-1.5 top-1.5 flex h-2.5 w-2.5 items-center justify-center">
-                  <span className="absolute h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
-                  <span className="relative h-2 w-2 rounded-full bg-red-500" />
-                </span>
-              )}
-            </button>
+            {/* Admin, kurye ve kurye yöneticisi panelleriyle aynı zil: /api/notifications/ (liste, okundu bilgisi) */}
+            <NotificationBell />
 
             <button
               type="button"
